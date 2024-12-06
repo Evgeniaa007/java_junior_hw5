@@ -37,7 +37,31 @@ public class ClientManager implements Runnable{
         while(socket.isConnected()){
             try {
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                int space = messageFromClient.indexOf(' ');
+                String message = messageFromClient.substring(space+1);
+                if(message.startsWith("@")){
+                    space = message.indexOf(' ');
+                    String receiverName = message.substring(1, space);
+                    sendToClient(receiverName, messageFromClient);
+                }
+                else{
+                    broadcastMessage(messageFromClient);
+                }
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+                break;
+            }
+        }
+    }
+
+    private void sendToClient(String name, String message){
+        for(ClientManager client : clients){
+            try {
+                if(client.name.equals(name)){
+                    client.bufferedWriter.write(message);
+                    client.bufferedWriter.newLine();
+                    client.bufferedWriter.flush();
+                }
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
